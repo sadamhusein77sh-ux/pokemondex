@@ -1,0 +1,8 @@
+{
+  "name": "pokemondex",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular",
+  "id": "eab748ba"
+}
