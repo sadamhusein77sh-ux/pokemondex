@@ -1,6 +1,7 @@
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { environment } from '../../environments/environment';
 import { POKE_API_BASE_URL, PokeApiService } from '../infrastructure/api/poke-api.service';
 import { LOCAL_STORAGE_BACKING } from '../infrastructure/storage/ionic-storage.service';
 import { FavoritesRepository } from '../domain/repositories/favorites.repository';
@@ -38,12 +39,10 @@ import {
   GetPokemonTypesUseCase,
 } from '../application/pokemon/pokemon.usecases';
 
-const POKE_API_BASE = 'https://pokeapi.co/api/v2';
-
 @NgModule({
   imports: [CommonModule],
   providers: [
-    { provide: POKE_API_BASE_URL, useValue: POKE_API_BASE },
+    { provide: POKE_API_BASE_URL, useValue: environment.apiBaseUrl },
     { provide: LOCAL_STORAGE_BACKING, useFactory: resolveBrowserBacking },
     { provide: FavoritesRepository, useExisting: FavoritesRepositoryImpl },
     { provide: BrowsePreferencesRepository, useExisting: BrowsePreferencesRepositoryImpl },
