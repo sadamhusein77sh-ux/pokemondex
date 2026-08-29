@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { firstValueFrom, forkJoin, Subject, takeUntil } from 'rxjs';
 
 import { ModalController } from '@ionic/angular/lazy';
@@ -29,6 +30,7 @@ export class FavoritesPage implements OnInit, OnDestroy {
   private readonly getDetail = inject(GetPokemonDetailUseCase);
   private readonly toggleFavorite = inject(ToggleFavoriteUseCase);
   private readonly modalController = inject(ModalController);
+  private readonly router = inject(Router);
 
   readonly state = signal<'loading' | 'success' | 'empty' | 'error'>('loading');
   readonly items = signal<ReadonlyArray<FavoriteRow>>([]);
@@ -80,7 +82,10 @@ export class FavoritesPage implements OnInit, OnDestroy {
   }
 
   onBrowse(): void {
-    window.location.hash = '#/tabs/browse';
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    void this.router.navigate(['/tabs/browse']);
   }
 
   trackById = (_: number, item: FavoriteRow): number => item.id;
