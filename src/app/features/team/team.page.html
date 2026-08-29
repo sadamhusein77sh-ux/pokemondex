@@ -1,0 +1,207 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title class="ion-text-center">
+      <span class="inline-flex items-baseline gap-1.5">
+        <ion-icon
+          name="people-circle-outline"
+          class="text-base text-indigo-500"
+        ></ion-icon>
+        <span class="text-base font-semibold tracking-tight">Team Builder</span>
+      </span>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @switch (state()) {
+    @case ('loading') {
+      <div
+        class="flex items-center justify-center py-20"
+        data-testid="team-loading"
+      >
+        <ion-spinner name="crescent" class="h-8 w-8"></ion-spinner>
+      </div>
+    }
+    @case ('error') {
+      <app-error-state
+        title="Could not load team"
+        [message]="errorMessage() ?? 'Please try again.'"
+      ></app-error-state>
+    }
+    @case ('empty') {
+      <div
+        class="flex flex-col items-center gap-4 px-6 py-12 text-center"
+        data-testid="team-empty"
+      >
+        <ion-icon
+          name="people-circle-outline"
+          class="text-5xl text-indigo-400"
+          aria-hidden="true"
+        ></ion-icon>
+        <div class="space-y-1">
+          <h2 class="text-lg font-semibold text-gray-800">Start your team</h2>
+          <p class="max-w-xs text-sm text-gray-500">
+            Pick up to 6 Pokémon to balance types, plan stat spreads, and build your
+            dream squad.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="mt-1 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          (click)="onAddPokemon()"
+          data-testid="team-empty-add"
+        >
+          Add your first Pokémon
+        </button>
+      </div>
+    }
+    @case ('success') {
+      <div
+        class="flex flex-col gap-6 px-4 pt-4 pb-[calc(5rem+var(--ion-safe-area-bottom,0px))]"
+        data-testid="team-content"
+      >
+        <section
+          class="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5"
+          data-testid="team-progress"
+          aria-label="Team progress"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+                My Team
+              </h2>
+              <p class="text-base font-semibold text-gray-800">
+                {{ progressText() }}
+              </p>
+            </div>
+            @if (completionBadge(); as badge) {
+              <span
+                class="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-sm"
+                data-testid="team-complete-badge"
+              >
+                <ion-icon name="checkmark-circle" class="text-sm"></ion-icon>
+                {{ badge }}
+              </span>
+            } @else if (hasTeam()) {
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                (click)="onClearTeam()"
+                data-testid="team-clear"
+              >
+                <ion-icon name="trash-outline" class="text-sm"></ion-icon>
+                Clear
+              </button>
+            }
+          </div>
+          <div
+            class="relative h-1.5 overflow-hidden rounded-full bg-gray-100"
+            aria-hidden="true"
+          >
+            <div
+              class="absolute inset-y-0 left-0 rounded-full bg-indigo-500 transition-all"
+              [style.width]="
+                (filledSlots().length / 6) * 100 + '%'
+              "
+            ></div>
+          </div>
+        </section>
+
+        <section
+          class="flex flex-col items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5"
+          data-testid="team-radar-section"
+          aria-label="Team stat totals"
+        >
+          <h2 class="self-start text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+            Stat totals
+          </h2>
+          <app-stats-radar-chart
+            [stats]="teamStats()"
+            [size]="radarSize()"
+          ></app-stats-radar-chart>
+          <dl
+            class="grid w-full grid-cols-3 gap-2 text-center"
+            data-testid="team-stat-summary"
+          >
+            <div class="rounded-lg bg-indigo-50 px-2 py-1">
+              <dt class="text-[10px] font-semibold uppercase tracking-wider text-indigo-500">
+                Total
+              </dt>
+              <dd class="text-sm font-bold text-indigo-700 tabular-nums">
+                {{ teamStats().total }}
+              </dd>
+            </div>
+            <div class="rounded-lg bg-gray-50 px-2 py-1">
+              <dt class="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                Avg HP
+              </dt>
+              <dd class="text-sm font-bold text-gray-700 tabular-nums">
+                {{ hasTeam() ? (teamStats().hp / filledSlots().length | number: '1.0-0') : '—' }}
+              </dd>
+            </div>
+            <div class="rounded-lg bg-gray-50 px-2 py-1">
+              <dt class="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                Avg Atk
+              </dt>
+              <dd class="text-sm font-bold text-gray-700 tabular-nums">
+                {{ hasTeam() ? (teamStats().attack / filledSlots().length | number: '1.0-0') : '—' }}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section
+          class="flex flex-col gap-3"
+          data-testid="team-slots-section"
+          aria-label="Team slots"
+        >
+          <div class="flex items-center justify-between">
+            <h2 class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+              Roster
+            </h2>
+            <button
+              type="button"
+              class="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:bg-gray-300 disabled:text-gray-500"
+              (click)="onAddPokemon()"
+              [disabled]="isFull()"
+              data-testid="team-add-button"
+            >
+              <ion-icon name="add" class="text-sm"></ion-icon>
+              Add Pokémon
+            </button>
+          </div>
+          <div
+            class="grid grid-cols-3 gap-3 sm:grid-cols-3"
+            role="list"
+            data-testid="team-slots-grid"
+          >
+            @for (resolved of resolvedSlots(); track trackBySlot($index, resolved)) {
+              <app-team-slot
+                [index]="resolved.slot.index"
+                [pokemon]="resolved.pokemon"
+                [disabled]="resolved.loading"
+                [isFull]="isFull()"
+                (open)="onSlotOpen(resolved.slot.index)"
+                (remove)="onSlotRemove(resolved.slot.index)"
+              ></app-team-slot>
+            }
+          </div>
+        </section>
+
+        <section
+          class="flex flex-col gap-3"
+          data-testid="team-coverage-section"
+          aria-label="Type coverage"
+        >
+          <h2 class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+            Type coverage
+          </h2>
+          <app-type-coverage-panel
+            [coverage]="coverage()"
+            [hasTeam]="hasTeam()"
+          ></app-type-coverage-panel>
+        </section>
+      </div>
+    }
+  }
+</ion-content>

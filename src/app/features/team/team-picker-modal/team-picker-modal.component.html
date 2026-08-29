@@ -1,0 +1,198 @@
+<ion-header mode="ios" class="ion-no-border">
+  <ion-toolbar>
+    <ion-title class="ion-text-center">
+      <span class="text-sm font-semibold">Select Pokémon</span>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" aria-label="Close picker">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<div
+  class="picker-scroll"
+  (scroll)="onScroll($event)"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Select Pokémon"
+  data-testid="team-picker"
+>
+  <div
+    class="sticky top-0 z-20 flex flex-col gap-2 border-b border-gray-100 bg-white px-4 py-3"
+  >
+    <label class="flex items-center gap-2 rounded-full bg-gray-100 px-3 py-2">
+      <ion-icon
+        name="search-outline"
+        class="text-base text-gray-500"
+        aria-hidden="true"
+      ></ion-icon>
+      <input
+        type="search"
+        class="w-full bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
+        placeholder="Search Pokémon"
+        autocomplete="off"
+        [value]="rawQuery()"
+        (input)="onSearch($any($event.target).value)"
+        data-testid="team-picker-search"
+        aria-label="Search Pokémon"
+      />
+    </label>
+    <div class="flex items-center justify-between gap-2">
+      <app-pokemon-type-select
+        class="min-w-0 flex-1"
+        [selected]="activeType()"
+        (typeChange)="onSelectType($event)"
+      ></app-pokemon-type-select>
+      @if (state() === 'success') {
+        <p
+          class="shrink-0 text-[11px] font-medium uppercase tracking-wider text-gray-400"
+          data-testid="team-picker-count"
+        >
+          {{ displayCount() }} / {{ totalLoaded() }}
+        </p>
+      }
+    </div>
+  </div>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div
+        class="flex flex-col items-center justify-center gap-3 py-20"
+        data-testid="team-picker-loading"
+      >
+        <ion-spinner name="crescent" class="h-8 w-8"></ion-spinner>
+        <p class="text-sm text-gray-500">Loading Pokémon…</p>
+      </div>
+    }
+    @case ('error') {
+      <div
+        class="flex flex-col items-center justify-center gap-3 px-6 py-20 text-center"
+        data-testid="team-picker-error"
+      >
+        <ion-icon
+          name="alert-circle-outline"
+          class="text-4xl text-red-500"
+          aria-hidden="true"
+        ></ion-icon>
+        <h2 class="text-base font-semibold text-gray-800">Something went wrong</h2>
+        <p class="max-w-xs text-sm text-gray-500">{{ errorMessage() }}</p>
+        <button
+          type="button"
+          class="mt-1 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          (click)="onRetry()"
+        >
+          Retry
+        </button>
+      </div>
+    }
+    @case ('empty') {
+      <div
+        class="flex flex-col items-center justify-center gap-2 px-6 py-20 text-center"
+        data-testid="team-picker-empty"
+      >
+        <ion-icon
+          name="search-outline"
+          class="text-3xl text-gray-400"
+          aria-hidden="true"
+        ></ion-icon>
+        @if (isSearchActive()) {
+          <p class="text-sm text-gray-500">
+            No Pokémon match "{{ searchTerm() }}" in the loaded set.
+          </p>
+        } @else if (activeType()) {
+          <p class="text-sm text-gray-500">No Pokémon of this type.</p>
+        } @else {
+          <p class="text-sm text-gray-500">The Pokédex returned no results.</p>
+        }
+      </div>
+    }
+    @case ('success') {
+      @if (filteredItems().length === 0) {
+        <div
+          class="flex flex-col items-center justify-center gap-2 px-6 py-20 text-center"
+          data-testid="team-picker-no-results"
+        >
+          <ion-icon
+            name="search-outline"
+            class="text-3xl text-gray-400"
+            aria-hidden="true"
+          ></ion-icon>
+          <p class="text-sm text-gray-500">
+            No Pokémon match "{{ searchTerm() }}" in the loaded set.
+          </p>
+          <p class="text-xs text-gray-400">
+            Scroll for more, or clear the search.
+          </p>
+        </div>
+      } @else {
+        <ul
+          class="picker-grid grid grid-cols-3 gap-2 px-3 pt-3 pb-10"
+          role="list"
+          data-testid="team-picker-grid"
+        >
+          @for (item of filteredItems(); track trackById($index, item)) {
+            <li>
+              <button
+                type="button"
+                class="flex w-full flex-col items-center gap-1 rounded-xl bg-white p-2 text-center shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                [attr.aria-label]="'Add ' + capitalize(item.name) + ' to team'"
+                [attr.data-testid]="'team-picker-row-' + item.id"
+                (click)="onSelect(item)"
+              >
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                  #{{ formatId(item.id) }}
+                </span>
+                <img
+                  [src]="item.imageUrl"
+                  [alt]="capitalize(item.name) + ' sprite'"
+                  loading="lazy"
+                  decoding="async"
+                  class="h-16 w-16 object-contain"
+                />
+                <span class="truncate text-[11px] font-semibold text-gray-800">
+                  {{ capitalize(item.name) }}
+                </span>
+                @if (hasAnyType(item)) {
+                  <div class="flex flex-wrap justify-center gap-1">
+                    @for (type of item.types; track type.name) {
+                      <span
+                        class="rounded-full px-1.5 py-[1px] text-[9px] font-bold uppercase leading-none tracking-wide text-white shadow-sm"
+                        [style.background-color]="typeColor(type.name)"
+                      >{{ type.name }}</span>
+                    }
+                  </div>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+@if (activeType() === null) {
+            <div
+              class="mb-2 flex h-14 items-center justify-center text-xs text-gray-400"
+              data-testid="team-picker-sentinel"
+            >
+              @if (isFetchingMore()) {
+                <span class="flex items-center gap-2">
+                  <ion-spinner name="crescent" class="h-3 w-3"></ion-spinner>
+                  Loading more…
+                </span>
+              } @else if (hasMore()) {
+                Scroll for more
+              } @else {
+                You've reached the end.
+              }
+            </div>
+          } @else {
+            <div
+              class="mb-2 flex h-12 items-center justify-center text-xs text-gray-400"
+              data-testid="team-picker-type-end"
+            >
+              End of {{ activeType() }}-type list.
+            </div>
+          }
+      }
+    }
+  }
+</div>

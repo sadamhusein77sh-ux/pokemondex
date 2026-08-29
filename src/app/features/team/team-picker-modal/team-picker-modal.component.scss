@@ -1,0 +1,25 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #ffffff;
+}
+
+ion-header {
+  flex: 0 0 auto;
+}
+
+.picker-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.picker-grid {
+  max-width: 28rem; /* 448px — keeps 3-col cards readable on desktop */
+  margin-left: auto;
+  margin-right: auto;
+}
