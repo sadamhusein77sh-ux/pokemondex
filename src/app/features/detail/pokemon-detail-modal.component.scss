@@ -1,0 +1,12 @@
+:host {
+  display: block;
+}
+
+ion-content::part(background) {
+  background: var(--ion-color-light, #f9fafb);
+}
+
+.detail-content {
+  padding-top: 2rem;
+  padding-bottom: calc(7rem + var(--ion-safe-area-bottom, 0px));
+}
