@@ -24,7 +24,7 @@
     @if (filled()) {
       @if (showImageSkeleton()) {
         <div
-          class="h-[80%] w-[80%] animate-pulse rounded-md bg-gray-200/70"
+          class="absolute inset-0 m-auto h-[80%] w-[80%] animate-pulse rounded-md bg-gray-200/70"
           aria-hidden="true"
           data-testid="team-slot-image-skeleton"
         ></div>
@@ -34,7 +34,7 @@
         [alt]="displayName() + ' sprite'"
         loading="lazy"
         decoding="async"
-        class="h-[80%] w-[80%] object-contain drop-shadow-md transition-opacity duration-300"
+        class="absolute inset-0 m-auto h-[80%] w-[80%] object-contain drop-shadow-md transition-opacity duration-300"
         [class.opacity-0]="showImageSkeleton()"
         (load)="onImageLoad()"
         (error)="onImageError($event)"

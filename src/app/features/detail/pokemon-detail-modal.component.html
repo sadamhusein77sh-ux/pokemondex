@@ -90,7 +90,7 @@
               ></div>
               @if (showImageSkeleton()) {
                 <div
-                  class="relative h-full w-full animate-pulse rounded-full bg-gray-200/70"
+                  class="absolute inset-0 m-auto h-full w-full animate-pulse rounded-full bg-gray-200/70"
                   aria-hidden="true"
                   data-testid="detail-image-skeleton"
                 ></div>
@@ -98,7 +98,7 @@
               <img
                 [src]="d.imageUrl"
                 [alt]="d.capitalizedName + ' official artwork'"
-                class="relative h-full w-full object-contain drop-shadow-lg transition-opacity duration-300"
+                class="absolute inset-0 m-auto h-full w-full object-contain drop-shadow-lg transition-opacity duration-300"
                 [class.opacity-0]="showImageSkeleton()"
                 loading="eager"
                 fetchpriority="high"

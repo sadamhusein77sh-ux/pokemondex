@@ -12,7 +12,7 @@
   >
     @if (showImageSkeleton()) {
       <div
-        class="h-[60%] w-[60%] animate-pulse rounded-md bg-gray-200/70"
+        class="absolute inset-0 m-auto h-[60%] w-[60%] animate-pulse rounded-md bg-gray-200/70"
         aria-hidden="true"
         data-testid="pokemon-card-image-skeleton"
       ></div>
@@ -23,7 +23,7 @@
       [attr.loading]="imageLoadingAttr()"
       [attr.fetchpriority]="imageFetchPriority()"
       decoding="async"
-      class="h-[60%] w-[60%] object-contain transition duration-300 drop-shadow-md group-hover:scale-105"
+      class="absolute inset-0 m-auto h-[60%] w-[60%] object-contain transition duration-300 drop-shadow-md group-hover:scale-105"
       [class.opacity-0]="showImageSkeleton()"
       (load)="onImageLoad()"
       (error)="onImageError($event)"
