@@ -62,10 +62,16 @@
     @case ('success') {
       <div class="pb-[calc(5rem+var(--ion-safe-area-bottom,0px))]">
         <div
+          [style.height.px]="topPad()"
+          aria-hidden="true"
+          data-testid="window-top-pad"
+        ></div>
+        <div
           class="grid grid-cols-2 gap-4 p-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+          #grid
           data-testid="pokemon-grid"
         >
-          @for (item of sortedItems(); track trackById($index, item)) {
+          @for (item of visibleItems(); track trackById($index, item)) {
             <app-pokemon-card
               [pokemon]="item"
               [isFavorite]="isFavorite(item)"
@@ -75,6 +81,11 @@
             ></app-pokemon-card>
           }
         </div>
+        <div
+          [style.height.px]="bottomPad()"
+          aria-hidden="true"
+          data-testid="window-bottom-pad"
+        ></div>
         @if (activeType() === null && hasMore()) {
           <div
             #loadSentinel

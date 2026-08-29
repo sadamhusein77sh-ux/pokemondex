@@ -27,6 +27,7 @@ A modern, cross-platform Pokédex built with **Angular 22**, **Ionic 9**, and **
 
 ### Browse
 - Paginated grid of all Pokémon with **infinite scroll** powered by an `IntersectionObserver`.
+- **Viewport virtual scrolling** — only cards inside the visible viewport (plus a 4-row buffer) are rendered, with spacer pads above/below to preserve scroll geometry. Powered by `ResizeObserver`, a throttled scroll listener, and Angular Signals — keeps a 1k+ list at a flat rendering cost.
 - **Type filter** (18 official types) with sticky chip bar and URL-state sync.
 - **Sort modes**: by National Dex ID or alphabetical name.
 - **Pull-to-refresh**, skeleton loaders, empty/error states.
@@ -36,6 +37,7 @@ A modern, cross-platform Pokédex built with **Angular 22**, **Ionic 9**, and **
 - One-tap heart toggle on any card.
 - Persisted locally via Ionic Storage (survives app restarts).
 - Badged tab indicator showing the current count.
+- Backed by an in-memory `Set` signal for O(1) lookups inside hot paths like the virtualized grid.
 
 ### Team Builder
 - Build a team of **up to 6 Pokémon**.
@@ -47,6 +49,11 @@ A modern, cross-platform Pokédex built with **Angular 22**, **Ionic 9**, and **
 - Official artwork with multi-tier sprite fallbacks (placeholder if all fail).
 - Base stats, abilities (including hidden), types, moves list.
 - Type-colored badges using a shared color palette.
+- Image and skeleton use `absolute inset-0 m-auto` centering so they stay perfectly aligned across breakpoints while the asset loads.
+
+### About
+- Static info page describing the app, data source, and attributions.
+- Content is constrained to a `max-w-2xl` centered column for readable line lengths on tablets and desktop.
 
 ### Cross-Platform
 - Runs as a **native iOS/Android** app (Capacitor 8).
@@ -108,6 +115,7 @@ src/app
 - Pages depend on **use cases** injected via Angular DI — never on infrastructure directly.
 - Use cases orchestrate repositories + services through interfaces, making the system testable with fakes.
 - All view models are reactive via **Signals**; OnPush change detection across the board.
+- `ChangeDetectorRef` is intentionally avoided — derived state is expressed through `computed`/`signal` so change detection is automatic.
 
 ---
 

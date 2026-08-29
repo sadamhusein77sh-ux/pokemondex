@@ -1,6 +1,6 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   ElementRef,
   OnDestroy,
@@ -39,6 +39,8 @@ import { PokemonDetailModalComponent } from '../detail/pokemon-detail-modal.comp
 
 const PAGE_SIZE = 20;
 const INITIAL_SKELETON_COUNT = 8;
+const WINDOW_BUFFER_ROWS = 4;
+const MIN_MEASURED_ROW_HEIGHT = 80;
 
 @Component({
   selector: 'app-browse-page',
@@ -47,7 +49,7 @@ const INITIAL_SKELETON_COUNT = 8;
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BrowsePage implements OnInit, OnDestroy {
+export class BrowsePage implements OnInit, AfterViewInit, OnDestroy {
   private readonly getList = inject(GetPokemonListUseCase);
   private readonly getByType = inject(GetPokemonByTypeUseCase);
   private readonly getFavorites = inject(GetFavoritesUseCase);
@@ -60,16 +62,27 @@ export class BrowsePage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly modalController = inject(ModalController);
   private readonly toastController = inject(ToastController);
-  private readonly cdr = inject(ChangeDetectorRef);
 
   @ViewChild('loadSentinel')
   set sentinel(el: ElementRef<HTMLElement> | undefined) {
     this.setupObserver(el?.nativeElement ?? null);
   }
 
+  @ViewChild('grid')
+  set gridRef(el: ElementRef<HTMLElement> | undefined) {
+    this.grid = el?.nativeElement ?? null;
+    if (this.grid) {
+      this.attachGridResizeObserver();
+      this.attachScrollListener();
+      requestAnimationFrame(() => this.measureGrid());
+    } else {
+      this.teardownGridListeners();
+    }
+  }
+
   readonly state = signal<'loading' | 'success' | 'error' | 'empty'>('loading');
   readonly items = signal<ReadonlyArray<PokemonListItem>>([]);
-  readonly favoriteIds = signal<ReadonlyArray<number>>([]);
+  readonly favoriteIds = signal<ReadonlySet<number>>(new Set());
   readonly offset = signal<number>(0);
   readonly isFetchingMore = signal<boolean>(false);
   readonly hasMore = signal<boolean>(true);
@@ -87,7 +100,71 @@ export class BrowsePage implements OnInit, OnDestroy {
     return copy.sort((a, b) => a.id - b.id);
   });
 
+  private readonly scrollTop = signal<number>(0);
+  private readonly viewportHeight = signal<number>(0);
+  private readonly measuredRowHeight = signal<number>(0);
+  private readonly measuredColumns = signal<number>(2);
+
+  readonly totalRows = computed<number>(() => {
+    const cols = this.measuredColumns();
+    return cols === 0 ? 0 : Math.ceil(this.sortedItems().length / cols);
+  });
+
+  readonly visibleRange = computed<{ start: number; end: number }>(() => {
+    const items = this.sortedItems();
+    const total = items.length;
+    if (total === 0) {
+      return { start: 0, end: 0 };
+    }
+    const rh = this.measuredRowHeight();
+    if (rh < MIN_MEASURED_ROW_HEIGHT) {
+      return { start: 0, end: total };
+    }
+    const cols = this.measuredColumns();
+    const totalRows = Math.ceil(total / cols);
+    const top = this.scrollTop();
+    const vp = this.viewportHeight();
+    const firstRow = Math.max(0, Math.floor(top / rh) - WINDOW_BUFFER_ROWS);
+    const lastRow = Math.min(
+      totalRows,
+      Math.ceil((top + vp) / rh) + WINDOW_BUFFER_ROWS,
+    );
+    return {
+      start: firstRow * cols,
+      end: Math.min(total, lastRow * cols),
+    };
+  });
+
+  readonly visibleItems = computed<ReadonlyArray<PokemonListItem>>(() => {
+    const items = this.sortedItems();
+    const range = this.visibleRange();
+    return items.slice(range.start, range.end);
+  });
+
+  readonly topPad = computed<number>(() => {
+    const range = this.visibleRange();
+    const cols = this.measuredColumns();
+    if (cols === 0) {
+      return 0;
+    }
+    return (range.start / cols) * this.measuredRowHeight();
+  });
+
+  readonly bottomPad = computed<number>(() => {
+    const items = this.sortedItems();
+    const range = this.visibleRange();
+    const cols = this.measuredColumns();
+    if (cols === 0) {
+      return 0;
+    }
+    return ((items.length - range.end) / cols) * this.measuredRowHeight();
+  });
+
   private observer: IntersectionObserver | null = null;
+  private grid: HTMLElement | null = null;
+  private resizeObserver: ResizeObserver | null = null;
+  private scrollEl: HTMLElement | null = null;
+  private rafHandle: number | null = null;
   private readonly destroy$ = new Subject<void>();
 
   ngOnInit(): void {
@@ -137,7 +214,15 @@ export class BrowsePage implements OnInit, OnDestroy {
     this.getFavorites
       .execute()
       .pipe(takeUntil(this.destroy$))
-      .subscribe((ids) => this.favoriteIds.set(ids));
+      .subscribe((ids) => this.favoriteIds.set(new Set(ids)));
+  }
+
+  ngAfterViewInit(): void {
+    if (this.grid) {
+      this.attachGridResizeObserver();
+      this.attachScrollListener();
+      requestAnimationFrame(() => this.measureGrid());
+    }
   }
 
   ngOnDestroy(): void {
@@ -145,10 +230,20 @@ export class BrowsePage implements OnInit, OnDestroy {
     this.destroy$.complete();
     this.observer?.disconnect();
     this.observer = null;
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    if (this.scrollEl) {
+      this.scrollEl.removeEventListener('scroll', this.onScroll);
+      this.scrollEl = null;
+    }
+    if (this.rafHandle !== null) {
+      cancelAnimationFrame(this.rafHandle);
+      this.rafHandle = null;
+    }
   }
 
   isFavorite(item: PokemonListItem): boolean {
-    return this.favoriteIds().includes(item.id);
+    return this.favoriteIds().has(item.id);
   }
 
   async openDetail(item: PokemonListItem): Promise<void> {
@@ -165,7 +260,7 @@ export class BrowsePage implements OnInit, OnDestroy {
   onToggleFavorite(item: PokemonListItem): void {
     const wasFavorite = this.isFavorite(item);
     this.toggleFavorite.execute(item.id).subscribe((next) => {
-      this.favoriteIds.set(next);
+      this.favoriteIds.set(new Set(next));
       void this.showToast(
         wasFavorite ? 'Removed from favorites' : 'Added to favorites',
       );
@@ -253,7 +348,6 @@ export class BrowsePage implements OnInit, OnDestroy {
       return;
     }
     this.isFetchingMore.set(true);
-    this.cdr.markForCheck();
     try {
       const nextOffset = this.offset();
       const page = await firstValueFrom(
@@ -266,7 +360,6 @@ export class BrowsePage implements OnInit, OnDestroy {
       void this.showToast('Could not load more Pokemon.');
     } finally {
       this.isFetchingMore.set(false);
-      this.cdr.markForCheck();
     }
   }
 
@@ -320,5 +413,76 @@ export class BrowsePage implements OnInit, OnDestroy {
       { rootMargin: '400px 0px' },
     );
     this.observer.observe(target);
+  }
+
+  private attachGridResizeObserver(): void {
+    if (!this.grid || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = new ResizeObserver(() => this.measureGrid());
+    this.resizeObserver.observe(this.grid);
+  }
+
+  private teardownGridListeners(): void {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+  }
+
+  private attachScrollListener(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    requestAnimationFrame(() => {
+      const ionContent = document.querySelector('ion-content.browse-scroll');
+      const scrollEl =
+        ionContent?.shadowRoot?.querySelector<HTMLElement>('[part="scroll"]') ??
+        null;
+      if (!scrollEl || scrollEl === this.scrollEl) {
+        return;
+      }
+      this.scrollEl?.removeEventListener('scroll', this.onScroll);
+      this.scrollEl = scrollEl;
+      this.scrollEl.addEventListener('scroll', this.onScroll, { passive: true });
+      this.viewportHeight.set(this.scrollEl.clientHeight);
+      this.measureGrid();
+    });
+  }
+
+  private readonly onScroll = (): void => {
+    if (this.rafHandle !== null) {
+      return;
+    }
+    this.rafHandle = requestAnimationFrame(() => {
+      this.rafHandle = null;
+      const el = this.scrollEl;
+      if (el) {
+        this.scrollTop.set(el.scrollTop);
+        if (el.clientHeight !== this.viewportHeight()) {
+          this.viewportHeight.set(el.clientHeight);
+        }
+      }
+    });
+  };
+
+  private measureGrid(): void {
+    const grid = this.grid;
+    if (!grid) {
+      return;
+    }
+    const style = window.getComputedStyle(grid);
+    const cols = style.gridTemplateColumns
+      .split(' ')
+      .filter((s) => s.length > 0).length;
+    if (cols > 0 && cols !== this.measuredColumns()) {
+      this.measuredColumns.set(cols);
+    }
+    const firstCard = grid.querySelector('app-pokemon-card');
+    if (firstCard) {
+      const h = firstCard.getBoundingClientRect().height;
+      if (h >= MIN_MEASURED_ROW_HEIGHT && Math.abs(h - this.measuredRowHeight()) > 0.5) {
+        this.measuredRowHeight.set(h);
+      }
+    }
   }
 }
