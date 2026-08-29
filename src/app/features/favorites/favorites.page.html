@@ -1,0 +1,48 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title class="ion-text-center">
+      <span class="inline-flex items-baseline gap-1.5">
+        <ion-icon name="heart" class="text-base text-red-500"></ion-icon>
+        <span class="text-base font-semibold tracking-tight">Favorites</span>
+      </span>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @switch (state()) {
+    @case ('loading') {
+      <app-pokemon-skeleton [count]="6"></app-pokemon-skeleton>
+    }
+    @case ('error') {
+      <app-error-state
+        title="Could not load favorites"
+        [message]="errorMessage() ?? 'Please try again.'"
+        (retry)="onBrowse()"
+      ></app-error-state>
+    }
+    @case ('empty') {
+      <app-empty-state
+        title="No favorites yet"
+        message="Tap the heart on any Pokemon to add it to your collection."
+        actionLabel="Browse Pokemon"
+        (action)="onBrowse()"
+      ></app-empty-state>
+    }
+    @case ('success') {
+      <div
+        class="grid grid-cols-2 gap-4 px-3 pt-3 pb-[calc(5rem+var(--ion-safe-area-bottom,0px))] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+        data-testid="favorites-grid"
+      >
+        @for (item of items(); track trackById($index, item)) {
+          <app-pokemon-card
+            [pokemon]="$any(item)"
+            [isFavorite]="isFavorite(item)"
+            (open)="openDetail(item)"
+            (toggleFavorite)="onToggleFavorite(item)"
+          ></app-pokemon-card>
+        }
+      </div>
+    }
+  }
+</ion-content>
