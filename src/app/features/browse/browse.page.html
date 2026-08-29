@@ -14,12 +14,12 @@
 
 <ion-content class="browse-scroll">
   <div
-    class="sticky top-0 z-30 flex items-center justify-end gap-2 bg-white px-2 py-2"
+    class="sticky top-0 z-30 flex items-center justify-end gap-1.5 bg-white px-2 py-2 sm:gap-2"
     data-testid="browse-type-filter"
   >
     <button
       type="button"
-      class="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 capitalize transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+      class="flex h-9 items-center gap-1 rounded-full bg-gray-100 px-3 text-xs font-semibold text-gray-700 capitalize transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
       (click)="toggleSortMode()"
       data-testid="browse-sort-toggle"
     >
@@ -69,6 +69,7 @@
             <app-pokemon-card
               [pokemon]="item"
               [isFavorite]="isFavorite(item)"
+              [priority]="$index < 4"
               (open)="openDetail(item)"
               (toggleFavorite)="onToggleFavorite(item)"
             ></app-pokemon-card>
