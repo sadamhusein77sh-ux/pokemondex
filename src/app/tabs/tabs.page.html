@@ -10,12 +10,12 @@
       <ion-icon aria-hidden="true" name="heart"></ion-icon>
       <ion-label>Favorites</ion-label>
       @if (favoritesCount() > 0) {
-        <span
-          class="absolute right-2 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-semibold leading-none text-white"
+        <ion-badge
+          class="tab-badge tab-badge--favorites"
           data-testid="tabs-favorites-count"
         >
           {{ favoritesCount() }}
-        </span>
+        </ion-badge>
       }
     </ion-tab-button>
 
@@ -23,12 +23,12 @@
       <ion-icon aria-hidden="true" name="people-circle-outline"></ion-icon>
       <ion-label>Team</ion-label>
       @if (teamCount() > 0) {
-        <span
-          class="absolute right-2 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-indigo-600 px-1.5 text-[10px] font-semibold leading-none text-white"
+        <ion-badge
+          class="tab-badge tab-badge--team"
           data-testid="tabs-team-count"
         >
           {{ teamCount() }}
-        </span>
+        </ion-badge>
       }
     </ion-tab-button>
 

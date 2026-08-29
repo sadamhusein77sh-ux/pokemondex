@@ -1,1 +1,25 @@
+.tab-badge {
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 4px;
+  --padding-end: 4px;
+  --color: #ffffff;
+  min-width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
 
+.tab-badge--favorites {
+  --background: #dc2626;
+}
+
+.tab-badge--team {
+  --background: #4f46e5;
+}
