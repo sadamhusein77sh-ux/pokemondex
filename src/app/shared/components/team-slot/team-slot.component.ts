@@ -36,8 +36,14 @@ export class TeamSlotComponent {
   readonly remove = output<number>();
 
   readonly pressed = signal<boolean>(false);
+  private readonly imageLoaded = signal<boolean>(false);
+  private readonly imageErrored = signal<boolean>(false);
 
   readonly filled = computed(() => this.pokemon() !== null);
+
+  readonly showImageSkeleton = computed(
+    () => this.filled() && !this.imageLoaded() && !this.imageErrored(),
+  );
 
   readonly displayName = computed(() => {
     const p = this.pokemon();
@@ -112,6 +118,16 @@ export class TeamSlotComponent {
         this.pressed.set(false);
       }
     }, LONG_PRESS_MS);
+  }
+
+  onImageLoad(): void {
+    this.imageLoaded.set(true);
+  }
+
+  onImageError(event: Event): void {
+    this.imageErrored.set(true);
+    const img = event.target as HTMLImageElement | null;
+    img?.classList.add('opacity-0');
   }
 
   typeColor(type: PokemonTypeName): string {

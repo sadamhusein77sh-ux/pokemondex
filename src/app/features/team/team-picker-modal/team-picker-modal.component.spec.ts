@@ -373,4 +373,55 @@ describe('TeamPickerModalComponent', () => {
       nextSpy.mockRestore();
     });
   });
+
+  describe('image loading state', () => {
+    beforeEach(async () => {
+      fixture.detectChanges();
+      component.ionViewWillEnter();
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      fixture.detectChanges();
+    });
+
+    function getImage(id: number): HTMLImageElement {
+      return fixture.nativeElement.querySelector(
+        `[data-testid="team-picker-image-${id}"]`,
+      ) as HTMLImageElement;
+    }
+
+    function getSkeletons(): NodeListOf<HTMLElement> {
+      return fixture.nativeElement.querySelectorAll(
+        '[data-testid="team-picker-image-skeleton"]',
+      );
+    }
+
+    it('shows a skeleton for each item before its image loads', () => {
+      expect(getSkeletons().length).toBe(20);
+      expect(component.showImageSkeleton(1)).toBe(true);
+    });
+
+    it('hides the skeleton for the item after its load event', () => {
+      const img = getImage(1);
+      img.dispatchEvent(new Event('load'));
+      fixture.detectChanges();
+      expect(component.showImageSkeleton(1)).toBe(false);
+      expect(getSkeletons().length).toBe(19);
+    });
+
+    it('hides the skeleton for the item after an error event', () => {
+      const img = getImage(2);
+      img.dispatchEvent(new Event('error'));
+      fixture.detectChanges();
+      expect(component.showImageSkeleton(2)).toBe(false);
+    });
+
+    it('tracks loaded/error state independently per item id', () => {
+      getImage(3).dispatchEvent(new Event('load'));
+      fixture.detectChanges();
+      expect(component.isImageLoaded(3)).toBe(true);
+      expect(component.isImageErrored(3)).toBe(false);
+      expect(component.showImageSkeleton(3)).toBe(false);
+      expect(component.showImageSkeleton(4)).toBe(true);
+    });
+  });
 });

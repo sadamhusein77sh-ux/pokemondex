@@ -185,4 +185,49 @@ describe('PokemonDetailModalComponent', () => {
   it('formats move names with capitalization', () => {
     expect(component.formatMove('thunder-shock')).toBe('Thunder Shock');
   });
+
+  describe('image loading state', () => {
+    function getImage(): HTMLImageElement | null {
+      return fixture.nativeElement.querySelector(
+        '[data-testid="detail-image"]',
+      );
+    }
+
+    function getSkeleton(): HTMLElement | null {
+      return fixture.nativeElement.querySelector(
+        '[data-testid="detail-image-skeleton"]',
+      );
+    }
+
+    it('shows the skeleton placeholder before the hero image loads', () => {
+      fixture.detectChanges();
+      expect(component.showImageSkeleton()).toBe(true);
+      expect(getSkeleton()).toBeTruthy();
+    });
+
+    it('hides the skeleton after the load event', () => {
+      fixture.detectChanges();
+      const img = getImage();
+      img?.dispatchEvent(new Event('load'));
+      fixture.detectChanges();
+      expect(component.showImageSkeleton()).toBe(false);
+      expect(getSkeleton()).toBeNull();
+    });
+
+    it('hides the skeleton after an error event', () => {
+      fixture.detectChanges();
+      const img = getImage();
+      img?.dispatchEvent(new Event('error'));
+      fixture.detectChanges();
+      expect(component.showImageSkeleton()).toBe(false);
+      expect(getSkeleton()).toBeNull();
+    });
+
+    it('marks the hero image as eager with high fetchpriority', () => {
+      fixture.detectChanges();
+      const img = getImage();
+      expect(img?.getAttribute('loading')).toBe('eager');
+      expect(img?.getAttribute('fetchpriority')).toBe('high');
+    });
+  });
 });

@@ -144,12 +144,23 @@
                 <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
                   #{{ formatId(item.id) }}
                 </span>
+                @if (showImageSkeleton(item.id)) {
+                  <div
+                    class="h-16 w-16 animate-pulse rounded-md bg-gray-200/70"
+                    aria-hidden="true"
+                    data-testid="team-picker-image-skeleton"
+                  ></div>
+                }
                 <img
                   [src]="item.imageUrl"
                   [alt]="capitalize(item.name) + ' sprite'"
                   loading="lazy"
                   decoding="async"
-                  class="h-16 w-16 object-contain"
+                  class="h-16 w-16 object-contain transition-opacity duration-300"
+                  [class.opacity-0]="showImageSkeleton(item.id)"
+                  (load)="onImageLoad(item.id)"
+                  (error)="onImageError(item.id, $event)"
+                  [attr.data-testid]="'team-picker-image-' + item.id"
                 />
                 <span class="truncate text-[11px] font-semibold text-gray-800">
                   {{ capitalize(item.name) }}

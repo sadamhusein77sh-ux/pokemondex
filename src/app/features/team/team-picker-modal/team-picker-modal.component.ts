@@ -54,6 +54,21 @@ export class TeamPickerModalComponent implements OnDestroy {
   readonly isFetchingMore = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
 
+  private readonly imageLoaded = signal<ReadonlySet<number>>(new Set());
+  private readonly imageErrored = signal<ReadonlySet<number>>(new Set());
+
+  isImageLoaded(id: number): boolean {
+    return this.imageLoaded().has(id);
+  }
+
+  isImageErrored(id: number): boolean {
+    return this.imageErrored().has(id);
+  }
+
+  showImageSkeleton(id: number): boolean {
+    return !this.isImageLoaded(id) && !this.isImageErrored(id);
+  }
+
   readonly filteredItems = computed<ReadonlyArray<PokemonListItem>>(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const excluded = new Set(this.excludedIdsSignal());
@@ -165,6 +180,20 @@ export class TeamPickerModalComponent implements OnDestroy {
 
   hasAnyType(item: PokemonListItem): boolean {
     return item.types.length > 0;
+  }
+
+  onImageLoad(id: number): void {
+    const next = new Set(this.imageLoaded());
+    next.add(id);
+    this.imageLoaded.set(next);
+  }
+
+  onImageError(id: number, event: Event): void {
+    const failed = new Set(this.imageErrored());
+    failed.add(id);
+    this.imageErrored.set(failed);
+    const img = event.target as HTMLImageElement | null;
+    img?.classList.add('opacity-0');
   }
 
   private async loadFirstPage(): Promise<void> {

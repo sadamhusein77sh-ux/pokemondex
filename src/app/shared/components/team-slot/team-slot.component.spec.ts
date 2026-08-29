@@ -105,4 +105,49 @@ describe('TeamSlotComponent', () => {
     fixture.detectChanges();
     expect(component.backgroundGradient()).toContain('linear-gradient');
   });
+
+  describe('image loading state', () => {
+    function getImage(): HTMLImageElement {
+      return fixture.nativeElement.querySelector(
+        '[data-testid="team-slot-image"]',
+      ) as HTMLImageElement;
+    }
+
+    function getSkeleton(): HTMLElement | null {
+      return fixture.nativeElement.querySelector(
+        '[data-testid="team-slot-image-skeleton"]',
+      );
+    }
+
+    it('shows the skeleton placeholder before the image loads when filled', () => {
+      fixture.componentRef.setInput('pokemon', bulbasaur);
+      fixture.detectChanges();
+      expect(getSkeleton()).toBeTruthy();
+      expect(component.showImageSkeleton()).toBe(true);
+    });
+
+    it('does not render a skeleton for an empty slot', () => {
+      fixture.detectChanges();
+      expect(getSkeleton()).toBeNull();
+      expect(component.showImageSkeleton()).toBe(false);
+    });
+
+    it('hides the skeleton and reveals the image after the load event', () => {
+      fixture.componentRef.setInput('pokemon', bulbasaur);
+      fixture.detectChanges();
+      getImage().dispatchEvent(new Event('load'));
+      fixture.detectChanges();
+      expect(getSkeleton()).toBeNull();
+      expect(component.showImageSkeleton()).toBe(false);
+    });
+
+    it('hides the skeleton after an image error', () => {
+      fixture.componentRef.setInput('pokemon', bulbasaur);
+      fixture.detectChanges();
+      getImage().dispatchEvent(new Event('error'));
+      fixture.detectChanges();
+      expect(getSkeleton()).toBeNull();
+      expect(component.showImageSkeleton()).toBe(false);
+    });
+  });
 });

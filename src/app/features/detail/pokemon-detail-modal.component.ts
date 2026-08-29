@@ -4,6 +4,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -40,6 +41,12 @@ export class PokemonDetailModalComponent implements OnInit, OnDestroy {
   readonly isFavorite = signal<boolean>(false);
   readonly favoriteIcon = signal<string>('heart-outline');
   readonly favoriteLabel = signal<string>('Add to favorites');
+
+  private readonly imageLoaded = signal<boolean>(false);
+  private readonly imageErrored = signal<boolean>(false);
+  readonly showImageSkeleton = computed(
+    () => !this.imageLoaded() && !this.imageErrored(),
+  );
 
   private readonly destroy$ = new Subject<void>();
 
@@ -102,6 +109,14 @@ export class PokemonDetailModalComponent implements OnInit, OnDestroy {
 
   formatId(id: number): string {
     return id.toString().padStart(3, '0');
+  }
+
+  onImageLoad(): void {
+    this.imageLoaded.set(true);
+  }
+
+  onImageError(): void {
+    this.imageErrored.set(true);
   }
 
   private loadDetail(): void {

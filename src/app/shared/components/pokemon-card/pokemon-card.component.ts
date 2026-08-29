@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 
 import { PokemonListItem } from '../../../core/models/pokemon-list.model';
 import { POKEMON_TYPE_HEX, PokemonTypeName, PokemonTypeRef } from '../../../core/models/pokemon-type.model';
@@ -15,9 +22,13 @@ export class PokemonCardComponent {
   readonly pokemon = input.required<PokemonListItem>();
   readonly isFavorite = input<boolean>(false);
   readonly loading = input<boolean>(false);
+  readonly priority = input<boolean>(false);
 
   readonly open = output<PokemonListItem>();
   readonly toggleFavorite = output<PokemonListItem>();
+
+  private readonly imageLoaded = signal(false);
+  private readonly imageErrored = signal(false);
 
   readonly displayName = computed(() => this.capitalize(this.pokemon().name));
   readonly primaryType = computed(() => this.pokemon().types[0] ?? null);
@@ -42,6 +53,18 @@ export class PokemonCardComponent {
     this.isFavorite() ? 'Remove from favorites' : 'Add to favorites',
   );
 
+  readonly showImageSkeleton = computed(
+    () => !this.imageLoaded() && !this.imageErrored(),
+  );
+
+  readonly imageLoadingAttr = computed(() =>
+    this.priority() ? 'eager' : 'lazy',
+  );
+
+  readonly imageFetchPriority = computed(() =>
+    this.priority() ? 'high' : null,
+  );
+
   onOpen(): void {
     if (this.loading()) {
       return;
@@ -57,6 +80,10 @@ export class PokemonCardComponent {
     this.toggleFavorite.emit(this.pokemon());
   }
 
+  onImageLoad(): void {
+    this.imageLoaded.set(true);
+  }
+
   onImageError(event: Event): void {
     const img = event.target as HTMLImageElement | null;
     if (!img) {
@@ -64,6 +91,7 @@ export class PokemonCardComponent {
     }
     img.src = this.buildFallback(img.alt);
     img.onerror = null;
+    this.imageErrored.set(true);
   }
 
   trackByType = (_: number, type: PokemonTypeRef): string => type.name;

@@ -10,12 +10,22 @@
     class="relative flex aspect-square items-center justify-center overflow-hidden"
     [style.background]="cardBackground()"
   >
+    @if (showImageSkeleton()) {
+      <div
+        class="h-[60%] w-[60%] animate-pulse rounded-md bg-gray-200/70"
+        aria-hidden="true"
+        data-testid="pokemon-card-image-skeleton"
+      ></div>
+    }
     <img
       [src]="pokemon().imageUrl"
       [alt]="displayName() + ' official artwork'"
-      loading="lazy"
+      [attr.loading]="imageLoadingAttr()"
+      [attr.fetchpriority]="imageFetchPriority()"
       decoding="async"
-      class="h-[60%] w-[60%] object-contain transition drop-shadow-md group-hover:scale-105"
+      class="h-[60%] w-[60%] object-contain transition duration-300 drop-shadow-md group-hover:scale-105"
+      [class.opacity-0]="showImageSkeleton()"
+      (load)="onImageLoad()"
       (error)="onImageError($event)"
       data-testid="pokemon-card-image"
     />

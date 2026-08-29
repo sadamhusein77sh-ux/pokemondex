@@ -149,4 +149,88 @@ describe('PokemonCardComponent', () => {
     expect(component.typeTextClass('ice')).toBe('text-gray-900');
     expect(component.typeTextClass('unknown-type')).toBe('text-gray-900');
   });
+
+  describe('image loading state', () => {
+    function getImage(): HTMLImageElement {
+      return fixture.nativeElement.querySelector(
+        '[data-testid="pokemon-card-image"]',
+      ) as HTMLImageElement;
+    }
+
+    function getSkeleton(): HTMLElement | null {
+      return fixture.nativeElement.querySelector(
+        '[data-testid="pokemon-card-image-skeleton"]',
+      );
+    }
+
+    it('shows the skeleton placeholder before the image loads', () => {
+      fixture.detectChanges();
+      expect(getSkeleton()).toBeTruthy();
+      expect(component['imageLoaded']()).toBe(false);
+      expect(component['imageErrored']()).toBe(false);
+      expect(component.showImageSkeleton()).toBe(true);
+    });
+
+    it('hides the skeleton and reveals the image after the load event', () => {
+      fixture.detectChanges();
+      const img = getImage();
+      img.dispatchEvent(new Event('load'));
+      fixture.detectChanges();
+      expect(getSkeleton()).toBeNull();
+      expect(component['imageLoaded']()).toBe(true);
+      expect(component.showImageSkeleton()).toBe(false);
+    });
+
+    it('hides the skeleton and reveals the fallback image after an error', () => {
+      fixture.detectChanges();
+      const img = getImage();
+      img.dispatchEvent(new Event('error'));
+      fixture.detectChanges();
+      expect(component['imageErrored']()).toBe(true);
+      expect(component.showImageSkeleton()).toBe(false);
+      expect(getSkeleton()).toBeNull();
+    });
+
+    it('renders the fallback placeholder URL when the image fails to load', () => {
+      fixture.detectChanges();
+      const img = getImage();
+      img.dispatchEvent(new Event('error'));
+      expect(img.src).toContain('placehold.co');
+    });
+  });
+
+  describe('priority hint', () => {
+    function getImage(): HTMLImageElement {
+      return fixture.nativeElement.querySelector(
+        '[data-testid="pokemon-card-image"]',
+      ) as HTMLImageElement;
+    }
+
+    it('defaults to lazy loading when priority is not set', () => {
+      fixture.detectChanges();
+      const img = getImage();
+      expect(img.getAttribute('loading')).toBe('lazy');
+      expect(img.getAttribute('fetchpriority')).toBeNull();
+    });
+
+    it('uses eager + high fetchpriority when priority is true', () => {
+      fixture.componentRef.setInput('priority', true);
+      fixture.detectChanges();
+      const img = getImage();
+      expect(img.getAttribute('loading')).toBe('eager');
+      expect(img.getAttribute('fetchpriority')).toBe('high');
+    });
+
+    it('exposes priority-derived signals correctly', () => {
+      fixture.componentRef.setInput('priority', true);
+      fixture.detectChanges();
+      expect(component.imageLoadingAttr()).toBe('eager');
+      expect(component.imageFetchPriority()).toBe('high');
+
+      fixture.componentRef.setInput('priority', false);
+      fixture.detectChanges();
+      expect(component.imageLoadingAttr()).toBe('lazy');
+      expect(component.imageFetchPriority()).toBeNull();
+    });
+  });
 });
