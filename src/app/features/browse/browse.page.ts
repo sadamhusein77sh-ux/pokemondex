@@ -157,6 +157,7 @@ export class BrowsePage implements OnInit, OnDestroy {
       componentProps: { pokemonId: item.id },
       breakpoints: [0, 0.5, 0.95],
       initialBreakpoint: 0.95,
+      expandToScroll: true,
     });
     await modal.present();
   }
