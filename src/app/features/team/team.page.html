@@ -16,7 +16,7 @@
   @switch (state()) {
     @case ('loading') {
       <div
-        class="flex items-center justify-center py-20"
+        class="flex items-center justify-center py-20 lg:py-14"
         data-testid="team-loading"
       >
         <ion-spinner name="crescent" class="h-8 w-8"></ion-spinner>
@@ -30,14 +30,18 @@
     }
     @case ('empty') {
       <div
-        class="flex flex-col items-center gap-4 px-6 py-12 text-center"
+        class="mx-auto flex max-w-md flex-col items-center gap-4 px-6 py-12 text-center lg:py-16"
         data-testid="team-empty"
       >
-        <ion-icon
-          name="people-circle-outline"
-          class="text-5xl text-indigo-400"
+        <div
+          class="flex h-20 w-20 items-center justify-center rounded-full bg-indigo-50 ring-1 ring-indigo-100"
           aria-hidden="true"
-        ></ion-icon>
+        >
+          <ion-icon
+            name="people-circle-outline"
+            class="text-4xl text-indigo-500"
+          ></ion-icon>
+        </div>
         <div class="space-y-1">
           <h2 class="text-lg font-semibold text-gray-800">Start your team</h2>
           <p class="max-w-xs text-sm text-gray-500">
@@ -47,26 +51,27 @@
         </div>
         <button
           type="button"
-          class="mt-1 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          class="mt-1 inline-flex items-center gap-1 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
           (click)="onAddPokemon()"
           data-testid="team-empty-add"
         >
+          <ion-icon name="add" class="text-base"></ion-icon>
           Add your first Pokémon
         </button>
       </div>
     }
     @case ('success') {
       <div
-        class="flex flex-col gap-6 px-4 pt-4 pb-[calc(5rem+var(--ion-safe-area-bottom,0px))]"
+        class="flex flex-col gap-5 px-4 pt-4 pb-[calc(5rem+var(--ion-safe-area-bottom,0px))] lg:mx-auto lg:grid lg:max-w-6xl lg:grid-cols-5 lg:items-start lg:gap-4 lg:px-6 lg:pt-5"
         data-testid="team-content"
       >
         <section
-          class="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5"
+          class="order-1 flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 lg:col-span-5 lg:gap-2.5 lg:p-3.5"
           data-testid="team-progress"
           aria-label="Team progress"
         >
-          <div class="flex items-center justify-between">
-            <div>
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
               <h2 class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
                 My Team
               </h2>
@@ -85,7 +90,7 @@
             } @else if (hasTeam()) {
               <button
                 type="button"
-                class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                class="inline-flex shrink-0 items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
                 (click)="onClearTeam()"
                 data-testid="team-clear"
               >
@@ -108,7 +113,45 @@
         </section>
 
         <section
-          class="flex flex-col items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5"
+          class="order-3 flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 lg:order-2 lg:col-span-3 lg:gap-2.5 lg:p-3.5"
+          data-testid="team-slots-section"
+          aria-label="Team slots"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+              Roster
+            </h2>
+            <button
+              type="button"
+              class="inline-flex shrink-0 items-center gap-1 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:bg-gray-300 disabled:text-gray-500"
+              (click)="onAddPokemon()"
+              [disabled]="isFull()"
+              data-testid="team-add-button"
+            >
+              <ion-icon name="add" class="text-sm"></ion-icon>
+              Add Pokémon
+            </button>
+          </div>
+          <div
+            class="grid grid-cols-3 gap-3 lg:gap-2.5"
+            role="list"
+            data-testid="team-slots-grid"
+          >
+            @for (resolved of resolvedSlots(); track trackBySlot($index, resolved)) {
+              <app-team-slot
+                [index]="resolved.slot.index"
+                [pokemon]="resolved.pokemon"
+                [disabled]="resolved.loading"
+                [isFull]="isFull()"
+                (open)="onSlotOpen(resolved.slot.index)"
+                (remove)="onSlotRemove(resolved.slot.index)"
+              ></app-team-slot>
+            }
+          </div>
+        </section>
+
+        <section
+          class="order-2 flex flex-col items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 lg:order-3 lg:col-span-2 lg:gap-2.5 lg:p-3.5"
           data-testid="team-radar-section"
           aria-label="Team stat totals"
         >
@@ -151,45 +194,7 @@
         </section>
 
         <section
-          class="flex flex-col gap-3"
-          data-testid="team-slots-section"
-          aria-label="Team slots"
-        >
-          <div class="flex items-center justify-between">
-            <h2 class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-              Roster
-            </h2>
-            <button
-              type="button"
-              class="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:bg-gray-300 disabled:text-gray-500"
-              (click)="onAddPokemon()"
-              [disabled]="isFull()"
-              data-testid="team-add-button"
-            >
-              <ion-icon name="add" class="text-sm"></ion-icon>
-              Add Pokémon
-            </button>
-          </div>
-          <div
-            class="grid grid-cols-3 gap-3 sm:grid-cols-3"
-            role="list"
-            data-testid="team-slots-grid"
-          >
-            @for (resolved of resolvedSlots(); track trackBySlot($index, resolved)) {
-              <app-team-slot
-                [index]="resolved.slot.index"
-                [pokemon]="resolved.pokemon"
-                [disabled]="resolved.loading"
-                [isFull]="isFull()"
-                (open)="onSlotOpen(resolved.slot.index)"
-                (remove)="onSlotRemove(resolved.slot.index)"
-              ></app-team-slot>
-            }
-          </div>
-        </section>
-
-        <section
-          class="flex flex-col gap-3"
+          class="order-4 flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 lg:col-span-5 lg:gap-2.5 lg:p-3.5"
           data-testid="team-coverage-section"
           aria-label="Type coverage"
         >
