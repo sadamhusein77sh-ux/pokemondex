@@ -1,0 +1,65 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title class="ion-text-center">
+      <span class="text-base font-semibold tracking-tight">About</span>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="flex flex-col gap-3 pb-[calc(5rem+var(--ion-safe-area-bottom,0px))]">
+    <header class="flex flex-col items-center gap-2 py-6 text-center">
+      <div
+        class="flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-bold text-white shadow-md"
+        aria-hidden="true"
+      >
+        PK
+      </div>
+      <h1 class="text-xl font-bold tracking-tight text-gray-900">Pokedex Mobile</h1>
+      <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+        v{{ appVersion }}
+      </p>
+    </header>
+
+    <section class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+      <h2 class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+        About
+      </h2>
+      <p class="text-sm leading-relaxed text-gray-700">
+        Browse every Pokemon, view detailed stats, filter by type, and keep a
+        personal list of favorites — all in your pocket.
+      </p>
+    </section>
+
+    <section class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+      <h2 class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+        Data attribution
+      </h2>
+      <p class="text-sm leading-relaxed text-gray-700">{{ apiAttribution }}</p>
+      <p class="mt-1 text-sm leading-relaxed text-gray-700">{{ imageAttribution }}</p>
+    </section>
+
+    <section class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+      <h2 class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+        Built with
+      </h2>
+      <ul class="flex flex-wrap gap-1.5">
+        <li class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+          Ionic 9 + Angular
+        </li>
+        <li class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+          Capacitor
+        </li>
+        <li class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+          Clean architecture
+        </li>
+        <li class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+          LRU cache
+        </li>
+        <li class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+          Tailwind v3
+        </li>
+      </ul>
+    </section>
+  </div>
+</ion-content>
