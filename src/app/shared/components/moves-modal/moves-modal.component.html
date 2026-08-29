@@ -1,0 +1,38 @@
+<div class="flex flex-col gap-3 px-4 pt-4 pb-6" data-testid="moves-modal">
+  <header class="flex items-baseline justify-between">
+    <h2 class="text-base font-semibold capitalize text-gray-800">
+      {{ data().pokemonName }}
+      <span class="text-sm font-normal text-gray-400">moves</span>
+    </h2>
+    <span
+      class="text-[11px] font-medium uppercase tracking-wide text-gray-400"
+      data-testid="moves-modal-count"
+    >
+      {{ visibleMoves().length }} / {{ data().moves.length }}
+    </span>
+  </header>
+
+  @if (visibleMoves().length === 0) {
+    <p class="text-sm text-gray-500">No moves available.</p>
+  } @else {
+    <ul
+      class="-mx-1 grid max-h-80 grid-cols-1 gap-1 overflow-y-auto px-1 sm:grid-cols-2"
+      role="list"
+    >
+      @for (move of visibleMoves(); track trackByName($index, move)) {
+        <li
+          class="rounded-lg bg-gray-50 px-3 py-2 text-sm capitalize text-gray-700"
+          [attr.data-testid]="'move-' + move.name"
+        >
+          {{ formatName(move.name) }}
+        </li>
+      }
+    </ul>
+  }
+
+  @if (hasMore()) {
+    <p class="text-[11px] text-gray-400">
+      Showing the first {{ visibleMoves().length }} of {{ data().moves.length }} moves.
+    </p>
+  }
+</div>

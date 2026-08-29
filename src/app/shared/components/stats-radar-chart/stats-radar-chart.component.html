@@ -1,0 +1,57 @@
+<svg
+  [attr.viewBox]="viewBox()"
+  [attr.width]="size()"
+  [attr.height]="size()"
+  class="text-gray-300"
+  role="img"
+  aria-label="Team stat radar chart"
+  data-testid="stats-radar-chart"
+>
+  <g>
+    @for (ring of gridLines(); track trackByIndex($index)) {
+      <polygon
+        [attr.points]="ring"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1"
+        stroke-linejoin="round"
+      ></polygon>
+    }
+  </g>
+  <g>
+    @for (axis of labelPoints(); track trackByAxis($index, axis)) {
+      <line
+        [attr.x1]="center()"
+        [attr.y1]="center()"
+        [attr.x2]="axis.axis"
+        [attr.y2]="axis.value"
+        stroke="currentColor"
+        stroke-width="1"
+      ></line>
+    }
+  </g>
+  @if (hasData()) {
+    <polygon
+      [attr.points]="dataPolygon()"
+      fill="#6366f1"
+      fill-opacity="0.2"
+      stroke="#6366f1"
+      stroke-opacity="0.8"
+      stroke-width="2"
+      stroke-linejoin="round"
+      data-testid="stats-radar-polygon"
+    ></polygon>
+  }
+  <g>
+    @for (axis of labelPoints(); track trackByAxis($index, axis)) {
+      <text
+        [attr.x]="axis.axis"
+        [attr.y]="axis.value"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        class="fill-gray-500"
+        font-size="10"
+      >{{ axis.label }}</text>
+    }
+  </g>
+</svg>

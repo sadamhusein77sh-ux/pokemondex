@@ -1,0 +1,77 @@
+<button
+  type="button"
+  class="group relative flex w-full flex-col items-stretch overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition focus:outline-none focus:ring-2 focus:ring-indigo-400"
+  [class.opacity-60]="disabled()"
+  [class.cursor-not-allowed]="disabled()"
+  [class.transition-transform]="filled()"
+  [class.hover:scale-[1.02]]="filled()"
+  [class.active:scale-95]="true"
+  [class.border-dashed]="!filled()"
+  [class.border-2]="!filled()"
+  [class.border-gray-200]="!filled()"
+  [attr.aria-label]="ariaLabel()"
+  [attr.aria-pressed]="filled()"
+  [attr.data-testid]="'team-slot-' + index()"
+  [attr.data-state]="filled() ? 'filled' : 'empty'"
+  (click)="onClick($event)"
+  (pointerdown)="onPointerDown($event)"
+>
+  <div
+    class="relative flex h-[100px] items-center justify-center sm:h-[110px]"
+    [style.background]="backgroundGradient()"
+    data-testid="team-slot-artwork"
+  >
+    @if (filled()) {
+      <img
+        [src]="pokemon()?.imageUrl"
+        [alt]="displayName() + ' sprite'"
+        loading="lazy"
+        decoding="async"
+        class="h-[80%] w-[80%] object-contain drop-shadow-md"
+        data-testid="team-slot-image"
+      />
+      <button
+        type="button"
+        class="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm transition hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-300"
+        [attr.aria-label]="'Remove ' + displayName() + ' from team'"
+        (click)="onRemove($event)"
+        data-testid="team-slot-remove"
+      >
+        <ion-icon name="close" class="text-sm"></ion-icon>
+      </button>
+    } @else {
+      <div
+        class="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-inner"
+        aria-hidden="true"
+      >
+        <ion-icon
+          [name]="isFull() ? 'lock-closed-outline' : 'add-outline'"
+          class="text-2xl text-gray-400"
+        ></ion-icon>
+      </div>
+    }
+  </div>
+  <div class="flex flex-col gap-1 px-2 py-1.5 text-center">
+    <span
+      class="text-[10px] font-semibold uppercase tracking-wider text-gray-400"
+      data-testid="team-slot-number"
+    >Slot {{ index() + 1 }}</span>
+    <span
+      class="truncate text-[12px] font-semibold text-gray-800"
+      [class.text-gray-400]="!filled()"
+      [attr.title]="displayName()"
+      data-testid="team-slot-name"
+    >{{ slotLabel() }}</span>
+    @if (filled()) {
+      <div class="flex flex-wrap justify-center gap-1" data-testid="team-slot-types">
+        @for (type of pokemon()?.types ?? []; track trackByType($index, type)) {
+          <span
+            class="inline-block rounded-full px-1.5 py-[1px] text-[9px] font-bold uppercase leading-none tracking-wide text-white shadow-sm"
+            [style.background-color]="typeColor(type)"
+            [attr.data-testid]="'team-slot-type-' + type"
+          >{{ capitalize(type) }}</span>
+        }
+      </div>
+    }
+  </div>
+</button>

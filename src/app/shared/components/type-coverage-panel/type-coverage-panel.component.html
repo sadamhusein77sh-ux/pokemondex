@@ -1,0 +1,59 @@
+<div
+  class="flex flex-col gap-4"
+  data-testid="type-coverage-panel"
+  aria-label="Team type coverage"
+>
+  @if (!hasTeam()) {
+    <p class="text-sm text-gray-500" data-testid="coverage-empty">
+      Add Pokémon to see coverage.
+    </p>
+  } @else if (visibleRows().length === 0) {
+    <p class="text-sm text-gray-500" data-testid="coverage-neutral-only">
+      Your team has no strong resists or weaknesses.
+    </p>
+  } @else {
+    <ul class="flex flex-col gap-3" role="list">
+      @for (row of visibleRows(); track trackByBucket($index, row)) {
+        <li
+          class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5"
+          [attr.data-testid]="'coverage-row-' + row.bucket"
+        >
+          <div class="mb-2 flex items-center gap-2">
+            <ion-icon
+              [name]="row.icon"
+              [class]="
+                row.tone === 'positive'
+                  ? 'text-base text-emerald-500'
+                  : row.tone === 'negative'
+                    ? 'text-base text-red-500'
+                    : 'text-base text-gray-400'
+              "
+              aria-hidden="true"
+            ></ion-icon>
+            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+              {{ row.label }}
+              <span class="ml-1 text-[10px] font-medium text-gray-400">
+                ({{ row.types.length }})
+              </span>
+            </h3>
+          </div>
+          @if (row.types.length === 0) {
+            <p class="text-xs text-gray-400">No types.</p>
+          } @else {
+            <div class="flex flex-wrap gap-1.5" role="list">
+              @for (type of row.types; track trackByType($index, type)) {
+                <span
+                  class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm"
+                  [style.background-color]="type.color"
+                  [attr.data-testid]="'coverage-type-' + type.name"
+                >
+                  {{ type.label }}
+                </span>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>

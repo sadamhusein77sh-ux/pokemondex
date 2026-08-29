@@ -1,0 +1,57 @@
+<button
+  type="button"
+  class="group relative flex w-full flex-col items-stretch overflow-hidden rounded-xl bg-white shadow-md ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+  [attr.aria-label]="'Open details for ' + displayName()"
+  [attr.data-pokemon-id]="pokemon().id"
+  [attr.data-testid]="'pokemon-card-' + pokemon().id"
+  (click)="onOpen()"
+>
+  <div
+    class="relative flex aspect-square items-center justify-center overflow-hidden"
+    [style.background]="cardBackground()"
+  >
+    <img
+      [src]="pokemon().imageUrl"
+      [alt]="displayName() + ' official artwork'"
+      loading="lazy"
+      decoding="async"
+      class="h-[60%] w-[60%] object-contain transition drop-shadow-md group-hover:scale-105"
+      (error)="onImageError($event)"
+      data-testid="pokemon-card-image"
+    />
+
+    <button
+      type="button"
+      class="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm transition hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-300"
+      [class.text-red-500]="isFavorite()"
+      [attr.aria-label]="favoriteLabel()"
+      [attr.aria-pressed]="isFavorite()"
+      (click)="onToggleFavorite($event)"
+      data-testid="pokemon-card-favorite"
+    >
+      <ion-icon
+        [name]="favoriteIcon()"
+        class="text-[16px]"
+      ></ion-icon>
+    </button>
+  </div>
+
+  <div class="flex flex-col gap-1 px-1.5 py-1.5">
+    <span
+      class="truncate text-[11px] font-bold capitalize text-gray-800"
+      [attr.title]="displayName()"
+      data-testid="pokemon-card-name"
+    >{{ displayName() }}</span>
+
+    <div class="flex flex-wrap gap-1.5" data-testid="pokemon-card-types">
+      @for (type of types(); track trackByType($index, type)) {
+        <span
+          class="rounded-full px-2 py-1 text-[10px] font-bold uppercase leading-none tracking-wide shadow-sm"
+          [style.background-color]="typeColor(type.name)"
+          [class]="typeTextClass(type.name)"
+          [attr.data-testid]="'pokemon-card-type-' + type.name"
+        >{{ type.name }}</span>
+      }
+    </div>
+  </div>
+</button>

@@ -1,0 +1,20 @@
+<div class="relative inline-block">
+  <ion-select
+    class="min-w-[140px] max-w-full rounded-full text-xs font-semibold capitalize"
+    placeholder="All types"
+    [value]="selected()"
+    (ionChange)="onChange($event)"
+    data-testid="pokemon-type-select-trigger"
+  >
+    <ion-select-option
+      [value]="null"
+      data-testid="pokemon-type-select-all"
+    >All types</ion-select-option>
+    @for (option of options(); track trackByName($index, option)) {
+      <ion-select-option
+        [value]="option.name"
+        [attr.data-testid]="'pokemon-type-select-' + option.name"
+      >{{ option.label }}</ion-select-option>
+    }
+  </ion-select>
+</div>

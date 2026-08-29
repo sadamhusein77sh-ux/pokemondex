@@ -1,0 +1,8 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+button[aria-pressed='true'] ion-icon {
+  color: var(--ion-color-danger, #ef4444);
+}
